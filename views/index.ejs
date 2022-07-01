@@ -1,0 +1,107 @@
+<html>
+<head>
+    <title>
+        Chat xàm
+    </title>
+    <script src="jquery.js"></script>
+    <script src="socket.io/socket.io.js"></script>
+    <script>
+        var socket = io("http://10.152.56.199:3000");
+        // socket.on("server-send-data",function(data){
+        //     $('#data').append(data + ", ");
+        // })
+        socket.on('server-send-fail',function(){
+            alert('Đa co nguoi dang ky ten nay');
+        });
+        socket.on('server-send-success',function(data){
+            $('#currentUser').html(data);
+            $('#loginForm').hide(2000);
+            $('#chatForm').show(1000);
+        });
+        socket.on('server-send-list-user',function(data){
+            $('#boxContent').html("");
+            data.forEach(element => {
+                $('#boxContent').append("<div class='user'>"+element+"</div>");
+            });
+        });
+        socket.on('server-send-mess',function(data){
+            $('#listMessage').append("<div class='ms'>"+data.username+":"+ data.nd+"</div>");
+        });
+        socket.on('someone-typing',(data)=>{
+            $('#noti').html("<img width ='20px' src='200.gif'> "+data);
+        });
+        socket.on('someone-stop-typing',(data)=>{
+            $('#noti').html("");
+        });
+        $(document).ready(function(){
+            // $('#btnClickSend').click(function(){
+            //     socket.emit('client-send-data','hello world');
+            // })
+            $('#loginForm').show();
+            $('#chatForm').hide();
+            $('#register').click(function(){
+                socket.emit('client-send-user',$('#user').val());
+            });
+            $('#logOut').click(function(){
+                socket.emit('logOut');
+                $('#chatForm').hide(2000);
+                $('#loginForm').show(1000);
+            
+            });
+            $('#btnSend').click(function(){
+                socket.emit('user-send-mess',$('#txtMessage').val());
+            });
+            $('#txtMessage').focusin(()=>{
+                socket.emit('typing');
+            });
+            $('#txtMessage').focusout(()=>{
+                socket.emit('stop-typing');
+            });
+        })
+    </script>
+    <style>
+        body{
+            background-color: antiquewhite;
+        }
+        #wrapper{width: 600px; margin: auto;}
+        #user{background-color: transparent; border: solid 1px black;}
+        #left, #right { min-height: 300px;}
+        #left{ width: 30%;float: left; background-color: aquamarine;}
+        #right{width: 70%; float: right; background-color: aquamarine;}
+        #boxTitle{border: solid 1px black;padding: 5px;text-align: center; font-weight: bold;}
+        #boxContent{border: solid 1px black; border-top: none;padding: 5px;text-align: center;}
+        #sayHi{text-align: right;}
+        #listMessage{height: 200px;background-color: azure;}
+        #txtMessage{background-color: transparent; border: solid 1px black;}
+    </style>
+</head>
+<body>
+    
+    <div id="wrapper">
+    <div id="loginForm">
+        <h3>Name?</h3>
+        <input type="text" id="user"/>
+        <input type="button" value="register" id="register"/>
+    </div>
+    <div id="chatForm">
+        <div id="left">
+            <div id="boxTitle">User Online</div>
+            <div id="boxContent">
+                
+            </div>
+        </div>
+        <div id="right">
+            <div id="sayHi">
+                Hello <span id="currentUser">Teo</span>
+                <input type="button" value="logOut" id="logOut">
+            </div>
+            <div id="listMessage">       
+            </div>
+            <div id="noti"></div>
+            <input type="text" id="txtMessage"/>
+            <input type="button" id="btnSend" value="Send"/>
+        </div>    
+    </div> 
+</div>
+</body>
+</html>
